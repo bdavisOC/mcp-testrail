@@ -17,7 +17,7 @@ The TestRail MCP server provides the following tools:
 | **Runs** | `getRuns`, `getRun`, `addRun`, `updateRun` |
 | **Tests** | `getTests`, `getTest` |
 | **Results** | `getResults`, `getResultsForCase`, `getResultsForRun`, `addResultForCase`, `addResultsForCases` |
-| **Plans** | `getPlans` |
+| **Plans** | `getPlans`, `getPlan` |
 | **Milestones** | `getMilestones` |
 | **Shared Steps** | `getSharedSteps` |
 
@@ -103,4 +103,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [TestRail API](https://docs.testrail.techmatrix.jp/testrail/docs/702/api/)
 - [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-

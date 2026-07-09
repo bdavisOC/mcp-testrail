@@ -3,6 +3,7 @@ import { TestRailClient } from "../../client/api/index.js";
 import { createSuccessResponse, createErrorResponse } from "./utils.js";
 import {
 	getPlansSchema,
+	getPlanSchema,
 	addPlanSchema,
 	addPlanEntrySchema,
 	addRunToPlanEntrySchema,
@@ -37,6 +38,36 @@ export function registerPlanTools(
 			} catch (error) {
 				const errorResponse = createErrorResponse(
 					`Error fetching test plans for project ${projectId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// Get a specific test plan (with its entries and runs)
+	server.tool(
+		"getPlan",
+		"Retrieves details of a specific TestRail test plan by ID, including its entries and the test runs within each entry / 特定のTestRailテストプランの詳細（エントリーと各エントリー内のテスト実行を含む）をIDで取得します",
+		getPlanSchema,
+		async ({ planId }) => {
+			try {
+				const plan = await testRailClient.plans.getPlan(planId);
+				const successResponse = createSuccessResponse(
+					"Test plan retrieved successfully",
+					{
+						plan,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error fetching test plan ${planId}`,
 					error,
 				);
 				return {

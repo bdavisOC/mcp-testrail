@@ -6,6 +6,11 @@ export const getPlansSchema = {
 	projectId: z.number().describe("TestRail Project ID"),
 };
 
+// Schema for retrieving a specific test plan
+export const getPlanSchema = {
+	planId: z.number().describe("TestRail Plan ID"),
+};
+
 // Schema for adding a new test plan
 export const addPlanSchema = z.object({
 	projectId: z.number().describe("TestRail Project ID"),
@@ -66,12 +71,14 @@ export const addRunToPlanEntrySchema = z.object({
 
 // Create Zod objects from each schema
 export const GetPlansInput = z.object(getPlansSchema);
+export const GetPlanInput = z.object(getPlanSchema);
 export const AddPlanInput = addPlanSchema;
 export const AddPlanEntryInput = addPlanEntrySchema;
 export const AddRunToPlanEntryInput = addRunToPlanEntrySchema;
 
 // Extract input types
 export type GetPlansInputType = z.infer<typeof GetPlansInput>;
+export type GetPlanInputType = z.infer<typeof GetPlanInput>;
 export type AddPlanInputType = z.infer<typeof AddPlanInput>;
 export type AddPlanEntryInputType = z.infer<typeof AddPlanEntryInput>;
 export type AddRunToPlanEntryInputType = z.infer<typeof AddRunToPlanEntryInput>;

@@ -65,6 +65,72 @@ describe("PlansClient", () => {
 		await expect(client.getPlans(1)).rejects.toThrow(errorMessage);
 	});
 
+	it("should get a specific test plan by id, including entries and runs", async () => {
+		const mockPlan: TestRailPlan = {
+			id: 1282,
+			name: "20.2 Manual Regression Test Plan/Test Runs",
+			project_id: 1,
+			created_on: 1234567890,
+			created_by: 1,
+			is_completed: false,
+			completed_on: null,
+			passed_count: 41,
+			blocked_count: 0,
+			untested_count: 51,
+			retest_count: 0,
+			failed_count: 0,
+			url: "http://example.com/plans/view/1282",
+			entries: [
+				{
+					id: "entry-1",
+					suite_id: 1,
+					name: "Regression Suite",
+					include_all: true,
+					runs: [
+						{
+							id: 1357,
+							suite_id: 1,
+							name: "Test Run 6/25/2026",
+							description: "",
+							milestone_id: 31,
+							assignedto_id: 6,
+							include_all: false,
+							is_completed: true,
+							completed_on: 1782755740,
+							config: null,
+							config_ids: [],
+							passed_count: 1,
+							blocked_count: 0,
+							untested_count: 0,
+							retest_count: 0,
+							failed_count: 0,
+							custom_status_count: {},
+							created_on: 1782419392,
+							created_by: 6,
+							plan_id: 1282,
+							url: "http://example.com/runs/view/1357",
+							refs: "OC-27924",
+						},
+					],
+				},
+			],
+		};
+
+		mockAxios.get.mockResolvedValueOnce({ data: mockPlan });
+
+		const result = await client.getPlan(1282);
+
+		expect(mockAxios.get).toHaveBeenCalledWith("/api/v2/get_plan/1282");
+		expect(result).toEqual(mockPlan);
+	});
+
+	it("should handle errors when getting a test plan", async () => {
+		const errorMessage = "API Error";
+		mockAxios.get.mockRejectedValueOnce(new Error(errorMessage));
+
+		await expect(client.getPlan(1282)).rejects.toThrow(errorMessage);
+	});
+
 	it("should create a new test plan with name only", async () => {
 		mockAxios.post.mockResolvedValueOnce({ data: {} });
 

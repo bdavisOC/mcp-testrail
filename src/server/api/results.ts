@@ -7,6 +7,7 @@ import {
 	getResultsForRunSchema,
 	addResultForCaseSchema,
 	addResultsForCasesSchema,
+	addAttachmentToResultSchema,
 } from "../../shared/schemas/results.js";
 
 /**
@@ -18,6 +19,40 @@ export function registerResultTools(
 	server: McpServer,
 	testRailClient: TestRailClient,
 ): void {
+	// Add a file attachment to an existing test result
+	server.tool(
+		"addAttachmentToResult",
+		"Adds a file attachment (e.g. a screenshot) to an existing test result / 既存のテスト結果にファイル添付を追加します. Provide the absolute path to a file already saved on disk; the file is uploaded as-is.",
+		addAttachmentToResultSchema,
+		async ({ resultId, filePath, filename }) => {
+			try {
+				const response = await testRailClient.results.addAttachmentToResult(
+					resultId,
+					filePath,
+					filename,
+				);
+				const successResponse = createSuccessResponse(
+					"Attachment added successfully",
+					{
+						response,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error adding attachment to result ${resultId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
 	// Get test results for a test
 	server.tool(
 		"getResults",

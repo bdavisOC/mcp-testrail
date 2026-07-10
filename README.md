@@ -16,7 +16,7 @@ The TestRail MCP server provides the following tools:
 | **Sections** | `getSection`, `getSections`, `addSection`, `moveSection`, `updateSection`, `deleteSection` |
 | **Runs** | `getRuns`, `getRun`, `addRun`, `updateRun` |
 | **Tests** | `getTests`, `getTest` |
-| **Results** | `getResults`, `getResultsForCase`, `getResultsForRun`, `addResultForCase`, `addResultsForCases` |
+| **Results** | `getResults`, `getResultsForCase`, `getResultsForRun`, `addResultForCase`, `addResultsForCases`, `addAttachmentToResult` |
 | **Plans** | `getPlans`, `getPlan` |
 | **Milestones** | `getMilestones` |
 | **Shared Steps** | `getSharedSteps` |

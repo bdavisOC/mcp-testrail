@@ -11,6 +11,7 @@ import {
 	AddResultForCaseInputType,
 	AddResultsInputType,
 	AddResultsForCasesInputType,
+	AddAttachmentToResultInputType,
 } from "../../shared/schemas/results.js";
 
 export class ResultsClient extends BaseTestRailClient {
@@ -179,6 +180,45 @@ export class ResultsClient extends BaseTestRailClient {
 			throw handleApiError(
 				error,
 				`Failed to add results for cases in run ${runId}`,
+			);
+		}
+	}
+
+	/**
+	 * Adds a file attachment to an existing test result
+	 * @param resultId ID of the test result
+	 * @param filePath Absolute path to the file on disk to upload
+	 * @param filename Optional filename to use for the attachment (defaults to the base name of filePath)
+	 * @returns Response containing the new attachment ID
+	 */
+	async addAttachmentToResult(
+		resultId: AddAttachmentToResultInputType["resultId"],
+		filePath: AddAttachmentToResultInputType["filePath"],
+		filename?: AddAttachmentToResultInputType["filename"],
+	): Promise<{ attachment_id: number }> {
+		try {
+			const fs = await import("node:fs");
+			const path = await import("node:path");
+			const { default: FormData } = await import("form-data");
+
+			const form = new FormData();
+			form.append(
+				"attachment",
+				fs.createReadStream(filePath),
+				filename ?? path.basename(filePath),
+			);
+
+			const response: AxiosResponse<{ attachment_id: number }> =
+				await this.client.post(
+					`/api/v2/add_attachment_to_result/${resultId}`,
+					form,
+					{ headers: form.getHeaders() },
+				);
+			return response.data;
+		} catch (error) {
+			throw handleApiError(
+				error,
+				`Failed to add attachment to result ${resultId}`,
 			);
 		}
 	}

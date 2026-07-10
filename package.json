@@ -1,12 +1,12 @@
 {
-  "name": "@bun913/mcp-testrail",
-  "author": "bun913",
-  "homepage": "https://github.com/bun913/mcp-testrail",
+  "name": "@bdavisoc/mcp-testrail",
+  "author": "bdavisOC",
+  "homepage": "https://github.com/bdavisOC/mcp-testrail",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.19.9",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,11 +42,11 @@
     "node": ">=20.18.1"
   },
   "bin": {
-    "mcp-testrail": "./dist/stdio.js"
+    "mcp-testrail": "dist/stdio.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bun913/mcp-testrail.git"
+    "url": "git+https://github.com/bdavisOC/mcp-testrail.git"
   },
   "license": "MIT"
 }

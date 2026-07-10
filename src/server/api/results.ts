@@ -121,9 +121,9 @@ export function registerResultTools(
 	// Add a result for a specific test case in a run
 	server.tool(
 		"addResultForCase",
-		"Adds a test result for a specific test case in a test run / テスト実行内の特定のテストケースにテスト結果を追加します",
+		"Adds a test result for a specific test case in a test run / テスト実行内の特定のテストケースにテスト結果を追加します. If the project's test case template requires custom fields (e.g. custom_step_results for step-by-step results, custom_environment, custom_staging_study_runner_instance) use customFields to pass them - omitting fields the template requires will cause the API to return a 400 error.",
 		addResultForCaseSchema,
-		async ({ runId, caseId, ...resultData }) => {
+		async ({ runId, caseId, customFields, ...resultData }) => {
 			try {
 				// Prepare result data
 				const data: Record<string, unknown> = {};
@@ -156,6 +156,13 @@ export function registerResultTools(
 				// Add assignee ID if specified
 				if (resultData.assignedtoId) {
 					data.assignedto_id = resultData.assignedtoId;
+				}
+
+				// Add additional custom fields from customFields object
+				if (customFields) {
+					for (const [key, value] of Object.entries(customFields)) {
+						data[key] = value;
+					}
 				}
 
 				const result = await testRailClient.results.addResultForCase(
@@ -227,6 +234,13 @@ export function registerResultTools(
 						// Add assignee ID if specified
 						if (result.assignedtoId) {
 							resultData.assignedto_id = result.assignedtoId;
+						}
+
+						// Add additional custom fields from customFields object
+						if (result.customFields) {
+							for (const [key, value] of Object.entries(result.customFields)) {
+								resultData[key] = value;
+							}
 						}
 
 						return resultData;

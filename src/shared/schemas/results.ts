@@ -88,6 +88,12 @@ export const addResultForCaseSchema = {
 		.string()
 		.optional()
 		.describe("Time spent testing (e.g., '30s', '2m 30s')"),
+	customFields: z
+		.record(z.unknown())
+		.optional()
+		.describe(
+			"Additional custom fields as key-value pairs (e.g., {custom_step_results: [...], custom_environment: 2}). Use this for project-specific required fields not covered by the standard parameters, including custom_step_results for step-by-step actual results.",
+		),
 };
 
 // Schema for adding multiple test results
@@ -149,6 +155,12 @@ export const addResultsForCasesSchema = {
 					.string()
 					.optional()
 					.describe("Time spent testing (e.g., '30s', '2m 30s')"),
+				customFields: z
+					.record(z.unknown())
+					.optional()
+					.describe(
+						"Additional custom fields as key-value pairs (e.g., {custom_step_results: [...], custom_environment: 2})",
+					),
 			}),
 		)
 		.describe("Array of test case results to add"),

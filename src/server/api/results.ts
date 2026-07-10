@@ -8,6 +8,7 @@ import {
 	addResultForCaseSchema,
 	addResultsForCasesSchema,
 	addAttachmentToResultSchema,
+	deleteAttachmentSchema,
 } from "../../shared/schemas/results.js";
 
 /**
@@ -43,6 +44,33 @@ export function registerResultTools(
 			} catch (error) {
 				const errorResponse = createErrorResponse(
 					`Error adding attachment to result ${resultId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// Delete a file attachment
+	server.tool(
+		"deleteAttachment",
+		"Deletes a file attachment by ID / 添付ファイルをIDで削除します",
+		deleteAttachmentSchema,
+		async ({ attachmentId }) => {
+			try {
+				await testRailClient.results.deleteAttachment(attachmentId);
+				const successResponse = createSuccessResponse(
+					`Attachment ${attachmentId} deleted successfully`,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error deleting attachment ${attachmentId}`,
 					error,
 				);
 				return {

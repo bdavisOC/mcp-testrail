@@ -12,6 +12,7 @@ import {
 	AddResultsInputType,
 	AddResultsForCasesInputType,
 	AddAttachmentToResultInputType,
+	DeleteAttachmentInputType,
 } from "../../shared/schemas/results.js";
 
 export class ResultsClient extends BaseTestRailClient {
@@ -219,6 +220,23 @@ export class ResultsClient extends BaseTestRailClient {
 			throw handleApiError(
 				error,
 				`Failed to add attachment to result ${resultId}`,
+			);
+		}
+	}
+
+	/**
+	 * Deletes an existing file attachment
+	 * @param attachmentId ID of the attachment to delete
+	 */
+	async deleteAttachment(
+		attachmentId: DeleteAttachmentInputType["attachmentId"],
+	): Promise<void> {
+		try {
+			await this.client.post(`/api/v2/delete_attachment/${attachmentId}`, {});
+		} catch (error) {
+			throw handleApiError(
+				error,
+				`Failed to delete attachment ${attachmentId}`,
 			);
 		}
 	}

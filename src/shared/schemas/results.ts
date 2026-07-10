@@ -166,6 +166,22 @@ export const addResultsForCasesSchema = {
 		.describe("Array of test case results to add"),
 };
 
+// Schema for adding a file attachment to a test result
+export const addAttachmentToResultSchema = {
+	resultId: z.number().describe("TestRail Result ID to attach the file to"),
+	filePath: z
+		.string()
+		.describe(
+			"Absolute path to the file on disk to upload as an attachment (e.g. a saved screenshot)",
+		),
+	filename: z
+		.string()
+		.optional()
+		.describe(
+			"Filename to use for the attachment (defaults to the base name of filePath)",
+		),
+};
+
 // Create Zod objects from each schema
 export const GetResultsInput = z.object(getResultsSchema);
 export const GetResultsForCaseInput = z.object(getResultsForCaseSchema);
@@ -174,6 +190,9 @@ export const AddResultInput = z.object(addResultSchema);
 export const AddResultForCaseInput = z.object(addResultForCaseSchema);
 export const AddResultsInput = z.object(addResultsSchema);
 export const AddResultsForCasesInput = z.object(addResultsForCasesSchema);
+export const AddAttachmentToResultInput = z.object(
+	addAttachmentToResultSchema,
+);
 
 // Extract input types
 export type GetResultsInputType = z.infer<typeof GetResultsInput>;
@@ -184,6 +203,9 @@ export type AddResultForCaseInputType = z.infer<typeof AddResultForCaseInput>;
 export type AddResultsInputType = z.infer<typeof AddResultsInput>;
 export type AddResultsForCasesInputType = z.infer<
 	typeof AddResultsForCasesInput
+>;
+export type AddAttachmentToResultInputType = z.infer<
+	typeof AddAttachmentToResultInput
 >;
 
 // -----------------------------------------------

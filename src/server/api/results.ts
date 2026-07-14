@@ -8,6 +8,7 @@ import {
 	addResultForCaseSchema,
 	addResultsForCasesSchema,
 	addAttachmentToResultSchema,
+	deleteAttachmentSchema,
 } from "../../shared/schemas/results.js";
 
 /**
@@ -43,6 +44,36 @@ export function registerResultTools(
 			} catch (error) {
 				const errorResponse = createErrorResponse(
 					`Error adding attachment to result ${resultId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// Delete an existing attachment by ID
+	server.tool(
+		"deleteAttachment",
+		"Deletes an existing attachment (e.g. a screenshot) from TestRail by its attachment ID / 添付ファイルを削除します. Permanent and cannot be undone. Requires TestRail 5.7+.",
+		deleteAttachmentSchema,
+		async ({ attachmentId }) => {
+			try {
+				await testRailClient.results.deleteAttachment(attachmentId);
+				const successResponse = createSuccessResponse(
+					"Attachment deleted successfully",
+					{
+						attachmentId,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error deleting attachment ${attachmentId}`,
 					error,
 				);
 				return {

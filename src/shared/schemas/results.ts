@@ -182,6 +182,15 @@ export const addAttachmentToResultSchema = {
 		),
 };
 
+// Schema for deleting an attachment
+export const deleteAttachmentSchema = {
+	attachmentId: z
+		.union([z.number(), z.string()])
+		.describe(
+			"TestRail Attachment ID to delete. An integer on TestRail < 7.1, or a reference string (e.g. '2054f652-fe2f-4542-acb0-422910ed87e3') on TestRail 7.1+.",
+		),
+};
+
 // Create Zod objects from each schema
 export const GetResultsInput = z.object(getResultsSchema);
 export const GetResultsForCaseInput = z.object(getResultsForCaseSchema);
@@ -193,6 +202,7 @@ export const AddResultsForCasesInput = z.object(addResultsForCasesSchema);
 export const AddAttachmentToResultInput = z.object(
 	addAttachmentToResultSchema,
 );
+export const DeleteAttachmentInput = z.object(deleteAttachmentSchema);
 
 // Extract input types
 export type GetResultsInputType = z.infer<typeof GetResultsInput>;
@@ -206,6 +216,9 @@ export type AddResultsForCasesInputType = z.infer<
 >;
 export type AddAttachmentToResultInputType = z.infer<
 	typeof AddAttachmentToResultInput
+>;
+export type DeleteAttachmentInputType = z.infer<
+	typeof DeleteAttachmentInput
 >;
 
 // -----------------------------------------------

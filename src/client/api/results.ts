@@ -12,6 +12,7 @@ import {
 	AddResultsInputType,
 	AddResultsForCasesInputType,
 	AddAttachmentToResultInputType,
+	DeleteAttachmentInputType,
 } from "../../shared/schemas/results.js";
 
 export class ResultsClient extends BaseTestRailClient {
@@ -219,6 +220,24 @@ export class ResultsClient extends BaseTestRailClient {
 			throw handleApiError(
 				error,
 				`Failed to add attachment to result ${resultId}`,
+			);
+		}
+	}
+
+	/**
+	 * Deletes an existing attachment (e.g. a screenshot) by its ID.
+	 * TestRail returns an empty body with a 200 on success. This is permanent.
+	 * @param attachmentId ID of the attachment to delete (integer on TestRail < 7.1, reference string on 7.1+)
+	 */
+	async deleteAttachment(
+		attachmentId: DeleteAttachmentInputType["attachmentId"],
+	): Promise<void> {
+		try {
+			await this.client.post(`/api/v2/delete_attachment/${attachmentId}`);
+		} catch (error) {
+			throw handleApiError(
+				error,
+				`Failed to delete attachment ${attachmentId}`,
 			);
 		}
 	}

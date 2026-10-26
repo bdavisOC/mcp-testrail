@@ -190,7 +190,7 @@ export const editResultSchema = {
 		.record(z.unknown())
 		.optional()
 		.describe(
-			"Custom result fields to change, keyed by system name (e.g., {custom_step_results: [...]}). Send the complete custom_step_results array - it replaces the stored one.",
+			"Result-level custom fields to change, keyed by system name (e.g., {custom_environment: 2}). Attachments or images inside individual steps cannot be set through the API - add those in the TestRail UI.",
 		),
 };
 
@@ -227,7 +227,7 @@ export const updateResultsSchema = {
 					.record(z.unknown())
 					.optional()
 					.describe(
-						"Custom result fields to change, keyed by system name (e.g., {custom_step_results: [...]}). Send the complete custom_step_results array - it replaces the stored one.",
+						"Result-level custom fields to change, keyed by system name (e.g., {custom_environment: 2}). Attachments or images inside individual steps cannot be set through the API - add those in the TestRail UI.",
 					),
 			}),
 		)

@@ -117,7 +117,7 @@ export function registerResultTools(
 	// Edit an existing test result (partial update)
 	server.tool(
 		"editResult",
-		'Updates an existing test result in place (TestRail edit_result) / 既存のテスト結果を更新します. Partial update: only the fields you pass change. Use this to correct or enrich a result instead of adding a second one - e.g. fix step text, change status, or embed an attached screenshot in a step via custom_step_results (<img src="index.php?/attachments/get/{attachment_id}">). Send the complete custom_step_results array, since it replaces the stored one.',
+		"Updates an existing test result in place (TestRail edit_result) / 既存のテスト結果を更新します. Partial update: only the fields you pass change. Use this to correct a result instead of adding a second one - e.g. change its status, comment, version, defects or result-level custom fields. The API cannot place attachments or images inside individual steps: attach files to the result with addAttachmentToResult, and add a step-level image in the TestRail UI (Edit Result).",
 		editResultSchema,
 		async ({ resultId, ...input }) => {
 			try {

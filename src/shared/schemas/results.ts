@@ -166,6 +166,77 @@ export const addResultsForCasesSchema = {
 		.describe("Array of test case results to add"),
 };
 
+// Schema for editing an existing test result (edit_result - partial update)
+export const editResultSchema = {
+	resultId: z.number().describe("TestRail Result ID to update"),
+	statusId: z
+		.number()
+		.optional()
+		.describe(
+			"New status ID (1:Pass, 2:Blocked, 4:Retest, 5:Fail; 3:Untested is not allowed)",
+		),
+	comment: z.string().optional().describe("New comment for the test result"),
+	defects: z
+		.string()
+		.optional()
+		.describe("Comma-separated list of defects linked to the result"),
+	assignedtoId: z.number().optional().describe("User to assign the test to"),
+	version: z.string().optional().describe("Version or build tested"),
+	elapsed: z
+		.string()
+		.optional()
+		.describe("Time spent testing (e.g., '30s', '2m 30s')"),
+	customFields: z
+		.record(z.unknown())
+		.optional()
+		.describe(
+			"Custom result fields to change, keyed by system name (e.g., {custom_step_results: [...]}). Send the complete custom_step_results array - it replaces the stored one.",
+		),
+};
+
+// Schema for updating multiple existing test results (update_results)
+export const updateResultsSchema = {
+	results: z
+		.array(
+			z.object({
+				resultId: z.number().describe("TestRail Result ID to update"),
+				statusId: z
+					.number()
+					.optional()
+					.describe(
+						"New status ID (1:Pass, 2:Blocked, 4:Retest, 5:Fail; 3:Untested is not allowed)",
+					),
+				comment: z
+					.string()
+					.optional()
+					.describe("New comment for the test result"),
+				defects: z
+					.string()
+					.optional()
+					.describe("Comma-separated list of defects linked to the result"),
+				assignedtoId: z
+					.number()
+					.optional()
+					.describe("User to assign the test to"),
+				version: z.string().optional().describe("Version or build tested"),
+				elapsed: z
+					.string()
+					.optional()
+					.describe("Time spent testing (e.g., '30s', '2m 30s')"),
+				customFields: z
+					.record(z.unknown())
+					.optional()
+					.describe(
+						"Custom result fields to change, keyed by system name (e.g., {custom_step_results: [...]}). Send the complete custom_step_results array - it replaces the stored one.",
+					),
+			}),
+		)
+		.min(1)
+		.describe(
+			"Array of results to update; only the fields given for each result change",
+		),
+};
+
 // Schema for adding a file attachment to a test result
 export const addAttachmentToResultSchema = {
 	resultId: z.number().describe("TestRail Result ID to attach the file to"),
@@ -199,10 +270,10 @@ export const AddResultInput = z.object(addResultSchema);
 export const AddResultForCaseInput = z.object(addResultForCaseSchema);
 export const AddResultsInput = z.object(addResultsSchema);
 export const AddResultsForCasesInput = z.object(addResultsForCasesSchema);
-export const AddAttachmentToResultInput = z.object(
-	addAttachmentToResultSchema,
-);
+export const AddAttachmentToResultInput = z.object(addAttachmentToResultSchema);
 export const DeleteAttachmentInput = z.object(deleteAttachmentSchema);
+export const EditResultInput = z.object(editResultSchema);
+export const UpdateResultsInput = z.object(updateResultsSchema);
 
 // Extract input types
 export type GetResultsInputType = z.infer<typeof GetResultsInput>;
@@ -217,9 +288,9 @@ export type AddResultsForCasesInputType = z.infer<
 export type AddAttachmentToResultInputType = z.infer<
 	typeof AddAttachmentToResultInput
 >;
-export type DeleteAttachmentInputType = z.infer<
-	typeof DeleteAttachmentInput
->;
+export type DeleteAttachmentInputType = z.infer<typeof DeleteAttachmentInput>;
+export type EditResultInputType = z.infer<typeof EditResultInput>;
+export type UpdateResultsInputType = z.infer<typeof UpdateResultsInput>;
 
 // -----------------------------------------------
 // Response schema definitions - migrated from types.ts

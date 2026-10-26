@@ -13,6 +13,7 @@ import {
 	AddResultsForCasesInputType,
 	AddAttachmentToResultInputType,
 	DeleteAttachmentInputType,
+	EditResultInputType,
 } from "../../shared/schemas/results.js";
 
 export class ResultsClient extends BaseTestRailClient {
@@ -182,6 +183,46 @@ export class ResultsClient extends BaseTestRailClient {
 				error,
 				`Failed to add results for cases in run ${runId}`,
 			);
+		}
+	}
+
+	/**
+	 * Updates an existing test result (partial update - only the fields sent are changed)
+	 * @param resultId ID of the test result
+	 * @param data Fields to change (status_id, comment, version, elapsed, defects, assignedto_id, custom_*)
+	 * @returns Updated test result
+	 */
+	async editResult(
+		resultId: EditResultInputType["resultId"],
+		data: Record<string, unknown>,
+	): Promise<TestRailResult> {
+		try {
+			const response: AxiosResponse<TestRailResult> = await this.client.post(
+				`/api/v2/edit_result/${resultId}`,
+				data,
+			);
+			return response.data;
+		} catch (error) {
+			throw handleApiError(error, `Failed to edit result ${resultId}`);
+		}
+	}
+
+	/**
+	 * Updates multiple existing test results in one request
+	 * @param data Object with a results array; each entry has result_id plus the fields to change
+	 * @returns Object with updated and failed arrays (partial success is possible)
+	 */
+	async updateResults(data: {
+		results: Record<string, unknown>[];
+	}): Promise<{
+		updated: { result_id: number; success: boolean }[];
+		failed: { result_id: number; error: string }[];
+	}> {
+		try {
+			const response = await this.client.post(`/api/v2/update_results`, data);
+			return response.data;
+		} catch (error) {
+			throw handleApiError(error, "Failed to update results");
 		}
 	}
 

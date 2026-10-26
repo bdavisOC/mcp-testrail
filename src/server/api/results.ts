@@ -9,7 +9,37 @@ import {
 	addResultsForCasesSchema,
 	addAttachmentToResultSchema,
 	deleteAttachmentSchema,
+	editResultSchema,
+	updateResultsSchema,
 } from "../../shared/schemas/results.js";
+
+/**
+ * Maps the camelCase tool input for a result update to TestRail's snake_case fields.
+ * Only fields that were provided are included, so edits stay partial.
+ */
+function toResultUpdateData(input: {
+	statusId?: number;
+	comment?: string;
+	version?: string;
+	elapsed?: string;
+	defects?: string;
+	assignedtoId?: number;
+	customFields?: Record<string, unknown>;
+}): Record<string, unknown> {
+	const data: Record<string, unknown> = {};
+	if (input.statusId !== undefined) data.status_id = input.statusId;
+	if (input.comment !== undefined) data.comment = input.comment;
+	if (input.version !== undefined) data.version = input.version;
+	if (input.elapsed !== undefined) data.elapsed = input.elapsed;
+	if (input.defects !== undefined) data.defects = input.defects;
+	if (input.assignedtoId !== undefined) data.assignedto_id = input.assignedtoId;
+	if (input.customFields) {
+		for (const [key, value] of Object.entries(input.customFields)) {
+			data[key] = value;
+		}
+	}
+	return data;
+}
 
 /**
  * Function to register test result-related API tools
@@ -74,6 +104,78 @@ export function registerResultTools(
 			} catch (error) {
 				const errorResponse = createErrorResponse(
 					`Error deleting attachment ${attachmentId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// Edit an existing test result (partial update)
+	server.tool(
+		"editResult",
+		'Updates an existing test result in place (TestRail edit_result) / 既存のテスト結果を更新します. Partial update: only the fields you pass change. Use this to correct or enrich a result instead of adding a second one - e.g. fix step text, change status, or embed an attached screenshot in a step via custom_step_results (<img src="index.php?/attachments/get/{attachment_id}">). Send the complete custom_step_results array, since it replaces the stored one.',
+		editResultSchema,
+		async ({ resultId, ...input }) => {
+			try {
+				const result = await testRailClient.results.editResult(
+					resultId,
+					toResultUpdateData(input),
+				);
+				const successResponse = createSuccessResponse(
+					"Result updated successfully",
+					{
+						result,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error updating result ${resultId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// Update multiple existing test results
+	server.tool(
+		"updateResults",
+		"Updates multiple existing test results in one request (TestRail update_results) / 複数の既存テスト結果を更新します. Each entry is a partial update keyed by resultId. Partial success is possible - check the failed array in the response.",
+		updateResultsSchema,
+		async ({ results }) => {
+			try {
+				const response = await testRailClient.results.updateResults({
+					results: results.map(({ resultId, ...input }) => ({
+						result_id: resultId,
+						...toResultUpdateData(input),
+					})),
+				});
+				const successResponse = createSuccessResponse(
+					response.failed && response.failed.length > 0
+						? "Results updated with some failures"
+						: "Results updated successfully",
+					{
+						response,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+					isError:
+						response.failed && response.failed.length > 0 ? true : undefined,
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					"Error updating results",
 					error,
 				);
 				return {

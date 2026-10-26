@@ -57,4 +57,57 @@ describe('Results API', () => {
       '/api/v2/delete_attachment/999',
     );
   });
+
+  it('edits an existing result with a partial update', async () => {
+    const updated = { id: 601202, status_id: 1, comment: 'Updated' };
+    mockAxiosInstance.post.mockResolvedValue({ data: updated });
+
+    const data = {
+      comment: 'Updated',
+      custom_step_results: [{ content: 'Step', expected: 'Exp', actual: 'Act', status_id: 1 }],
+    };
+    const result = await client.results.editResult(601202, data);
+
+    expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+      '/api/v2/edit_result/601202',
+      data,
+    );
+    expect(result).toEqual(updated);
+  });
+
+  it('handles errors when editing a result', async () => {
+    mockAxiosInstance.post.mockRejectedValue({
+      response: { status: 400, data: { error: 'Field :status_id is not a valid status' } },
+    });
+
+    await expect(client.results.editResult(1, { status_id: 3 })).rejects.toThrow();
+    expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/edit_result/1', { status_id: 3 });
+  });
+
+  it('updates multiple results and returns updated and failed arrays', async () => {
+    const response = {
+      updated: [{ result_id: 101, success: true }],
+      failed: [{ result_id: 102, error: 'Invalid status_id' }],
+    };
+    mockAxiosInstance.post.mockResolvedValue({ data: response });
+
+    const data = {
+      results: [
+        { result_id: 101, status_id: 1, comment: 'Updated after retry' },
+        { result_id: 102, status_id: 99 },
+      ],
+    };
+    const result = await client.results.updateResults(data);
+
+    expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/update_results', data);
+    expect(result).toEqual(response);
+  });
+
+  it('handles errors when updating multiple results', async () => {
+    mockAxiosInstance.post.mockRejectedValue({
+      response: { status: 400, data: { error: 'Missing results array' } },
+    });
+
+    await expect(client.results.updateResults({ results: [] })).rejects.toThrow();
+  });
 });

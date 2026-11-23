@@ -12,7 +12,7 @@ The TestRail MCP server provides the following tools:
 |----------|-------|
 | **Projects** | `getProjects`, `getProject` |
 | **Suites** | `getSuites`, `getSuite`, `addSuite`, `updateSuite` |
-| **Cases** | `getCase`, `getCases`, `addCase`, `updateCase`, `deleteCase`, `getCaseTypes`, `getCaseFields`, `copyToSection`, `moveToSection`, `getCaseHistory`, `updateCases`, `addBdd`, `getBdd` |
+| **Cases** | `getCase`, `getCases`, `addCase`, `updateCase`, `deleteCase`, `getCaseTypes`, `getCaseFields`, `copyToSection`, `moveToSection`, `getCaseHistory`, `updateCases`, `addBdd`, `getBdd`, `addAttachmentToCase`, `getAttachmentsForCase` |
 | **Sections** | `getSection`, `getSections`, `addSection`, `moveSection`, `updateSection`, `deleteSection` |
 | **Runs** | `getRuns`, `getRun`, `addRun`, `updateRun` |
 | **Tests** | `getTests`, `getTest` |

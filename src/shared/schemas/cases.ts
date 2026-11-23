@@ -430,3 +430,39 @@ export const addBddSchema = z.object({
 export const getBddSchema = z.object({
 	caseId: z.number().describe("TestRail Case ID to export as .feature"),
 });
+
+// Schema for adding a file attachment to a test case
+export const addAttachmentToCaseSchema = z.object({
+	caseId: z.number().describe("TestRail Case ID to attach the file to"),
+	filePath: z
+		.string()
+		.describe(
+			"Absolute path to the file on disk to upload as an attachment (e.g. a form file or a saved screenshot)",
+		),
+	filename: z
+		.string()
+		.optional()
+		.describe(
+			"Filename to use for the attachment (defaults to the base name of filePath)",
+		),
+});
+
+// Schema for listing the attachments of a test case
+export const getAttachmentsForCaseSchema = z.object({
+	caseId: z.number().describe("TestRail Case ID to list attachments for"),
+	limit: z
+		.number()
+		.optional()
+		.describe("Maximum number of attachments to return (default 250)"),
+	offset: z
+		.number()
+		.optional()
+		.describe("Number of attachments to skip, for pagination"),
+});
+
+export type AddAttachmentToCaseInput = z.infer<
+	typeof addAttachmentToCaseSchema
+>;
+export type GetAttachmentsForCaseInput = z.infer<
+	typeof getAttachmentsForCaseSchema
+>;

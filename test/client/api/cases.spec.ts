@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { setupMocks, createTestClient } from './testHelper';
 
 describe('Cases API', () => {
@@ -545,5 +548,104 @@ describe('Cases API', () => {
     
     // Verify axios post was not called
     expect(mockAxiosInstance.post).not.toHaveBeenCalled();
+  });
+
+  describe('case attachments', () => {
+    // Collects the multipart header text form-data writes for each appended part
+    const multipartHeaders = (form: unknown): string =>
+      ((form as { _streams: unknown[] })._streams ?? [])
+        .filter((part): part is string => typeof part === 'string')
+        .join('');
+
+    let tmpDir: string;
+    let filePath: string;
+
+    beforeEach(() => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-testrail-'));
+      filePath = path.join(tmpDir, 'form.xlsx');
+      fs.writeFileSync(filePath, 'file content');
+    });
+
+    afterEach(() => {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('uploads a file to a case as multipart field "attachment"', async () => {
+      mockAxiosInstance.post.mockResolvedValue({ data: { attachment_id: 443 } });
+
+      const result = await client.cases.addAttachmentToCase(2860115, filePath);
+
+      expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+      const [endpoint, form, config] = vi.mocked(mockAxiosInstance.post).mock.calls[0];
+      expect(endpoint).toBe('/api/v2/add_attachment_to_case/2860115');
+      expect(multipartHeaders(form)).toContain('name="attachment"; filename="form.xlsx"');
+      expect(config?.headers?.['content-type']).toMatch(/^multipart\/form-data; boundary=/);
+      expect(result).toEqual({ attachment_id: 443 });
+    });
+
+    it('uses the given filename instead of the base name of the path', async () => {
+      mockAxiosInstance.post.mockResolvedValue({ data: { attachment_id: 'a1b2-ref' } });
+
+      const result = await client.cases.addAttachmentToCase(1, filePath, 'renamed.xlsx');
+
+      const [, form] = vi.mocked(mockAxiosInstance.post).mock.calls[0];
+      expect(multipartHeaders(form)).toContain('filename="renamed.xlsx"');
+      expect(result).toEqual({ attachment_id: 'a1b2-ref' });
+    });
+
+    it('fails without calling TestRail when the file does not exist', async () => {
+      const missing = path.join(tmpDir, 'missing.xlsx');
+
+      await expect(client.cases.addAttachmentToCase(1, missing)).rejects.toThrow(
+        /missing\.xlsx/,
+      );
+      expect(mockAxiosInstance.post).not.toHaveBeenCalled();
+    });
+
+    it('handles errors when adding an attachment to a case', async () => {
+      mockAxiosInstance.post.mockRejectedValue({
+        response: { status: 400, data: { error: 'Field :case_id is not a valid test case.' } },
+      });
+
+      await expect(client.cases.addAttachmentToCase(999, filePath)).rejects.toThrow();
+    });
+
+    it('lists the attachments of a case', async () => {
+      const mockResponse = {
+        offset: 0,
+        limit: 250,
+        size: 1,
+        _links: { next: null, prev: null },
+        attachments: [{ id: 'a1b2-ref', name: 'form.xlsx', size: 12, entity_type: 'case' }],
+      };
+      mockAxiosInstance.get.mockResolvedValue({ data: mockResponse });
+
+      const result = await client.cases.getAttachmentsForCase(2860115);
+
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/api/v2/get_attachments_for_case/2860115',
+        { params: undefined },
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('passes limit and offset when listing the attachments of a case', async () => {
+      mockAxiosInstance.get.mockResolvedValue({ data: { attachments: [] } });
+
+      await client.cases.getAttachmentsForCase(1, { limit: 10, offset: 20 });
+
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/api/v2/get_attachments_for_case/1',
+        { params: { limit: 10, offset: 20 } },
+      );
+    });
+
+    it('handles errors when listing the attachments of a case', async () => {
+      mockAxiosInstance.get.mockRejectedValue({
+        response: { status: 400, data: { error: 'Field :case_id is not a valid test case.' } },
+      });
+
+      await expect(client.cases.getAttachmentsForCase(999)).rejects.toThrow();
+    });
   });
 }); 

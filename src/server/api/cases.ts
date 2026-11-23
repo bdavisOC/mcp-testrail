@@ -17,6 +17,8 @@ import {
 	TestRailCaseSchema,
 	addBddSchema,
 	getBddSchema,
+	addAttachmentToCaseSchema,
+	getAttachmentsForCaseSchema,
 } from "../../shared/schemas/cases.js";
 
 /**
@@ -825,6 +827,85 @@ export function registerCaseTools(
 			} catch (error) {
 				const errorResponse = createErrorResponse(
 					`Error exporting BDD scenario for case ${args.caseId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// Add a file attachment to a test case
+	server.tool(
+		"addAttachmentToCase",
+		"Adds a file attachment (e.g. a form file or a screenshot) to a test case / テストケースにファイル添付を追加します. Provide the absolute path to a file already saved on disk; the file is uploaded as-is. Returns the new attachment ID. Requires TestRail 6.5.2+. REQUIRED: caseId, filePath.",
+		{
+			caseId: addAttachmentToCaseSchema.shape.caseId,
+			filePath: addAttachmentToCaseSchema.shape.filePath,
+			filename: addAttachmentToCaseSchema.shape.filename,
+		},
+		async ({ caseId, filePath, filename }) => {
+			try {
+				const response = await testRailClient.cases.addAttachmentToCase(
+					caseId,
+					filePath,
+					filename,
+				);
+				const successResponse = createSuccessResponse(
+					"Attachment added successfully",
+					{
+						response,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error adding attachment to case ${caseId}`,
+					error,
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(errorResponse) }],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// List the attachments of a test case
+	server.tool(
+		"getAttachmentsForCase",
+		"Lists the attachments of a test case (ID, name, size, created date) / テストケースの添付ファイル一覧を取得します. Use it to confirm an upload landed or to find an attachment ID for deleteAttachment. REQUIRED: caseId.",
+		{
+			caseId: getAttachmentsForCaseSchema.shape.caseId,
+			limit: getAttachmentsForCaseSchema.shape.limit,
+			offset: getAttachmentsForCaseSchema.shape.offset,
+		},
+		async ({ caseId, limit, offset }) => {
+			try {
+				const params =
+					limit !== undefined || offset !== undefined
+						? { limit, offset }
+						: undefined;
+				const response = await testRailClient.cases.getAttachmentsForCase(
+					caseId,
+					params,
+				);
+				const successResponse = createSuccessResponse(
+					"Attachments retrieved successfully",
+					{
+						response,
+					},
+				);
+				return {
+					content: [{ type: "text", text: JSON.stringify(successResponse) }],
+				};
+			} catch (error) {
+				const errorResponse = createErrorResponse(
+					`Error getting attachments for case ${caseId}`,
 					error,
 				);
 				return {

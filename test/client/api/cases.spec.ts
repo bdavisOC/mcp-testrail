@@ -629,6 +629,40 @@ describe('Cases API', () => {
       expect(result).toEqual(mockResponse);
     });
 
+    it('drops repeated attachment IDs from a paginated listing and corrects size', async () => {
+      const form = { id: 1000013901, name: 'form.xls', size: 26624 };
+      const upload = { id: 1000013903, name: 'mcp-attachment-test.txt', size: 69 };
+      mockAxiosInstance.get.mockResolvedValue({
+        data: {
+          offset: 0,
+          limit: 250,
+          size: 3,
+          _links: { next: null, prev: null },
+          attachments: [form, upload, { ...upload }],
+        },
+      });
+
+      const result = await client.cases.getAttachmentsForCase(2860115);
+
+      expect(result).toEqual({
+        offset: 0,
+        limit: 250,
+        size: 2,
+        _links: { next: null, prev: null },
+        attachments: [form, upload],
+      });
+    });
+
+    it('drops repeated attachment IDs from a bare-array listing', async () => {
+      const form = { id: 11, name: 'form.xls' };
+      const upload = { id: 12, name: 'mcp-attachment-test.txt' };
+      mockAxiosInstance.get.mockResolvedValue({ data: [form, upload, { ...upload }] });
+
+      const result = await client.cases.getAttachmentsForCase(1);
+
+      expect(result).toEqual([form, upload]);
+    });
+
     it('passes limit and offset when listing the attachments of a case', async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: { attachments: [] } });
 

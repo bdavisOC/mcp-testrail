@@ -396,7 +396,7 @@ export class CasesClient extends BaseTestRailClient {
 	/**
 	 * Returns the attachments of a test case (TestRail 5.7+).
 	 * TestRail 6.7+ wraps the list in a paginated object ({ offset, limit, size, _links, attachments });
-	 * older versions return a bare array. The response is passed through as-is.
+	 * older versions return a bare array. Repeated attachment IDs are dropped (and size corrected).
 	 * @param caseId The ID of the test case
 	 * @param params Optional pagination parameters (limit, offset)
 	 */
@@ -409,7 +409,24 @@ export class CasesClient extends BaseTestRailClient {
 				`/api/v2/get_attachments_for_case/${caseId}`,
 				{ params },
 			);
-			return response.data;
+			// TestRail can list the same attachment more than once (seen for a file
+			// uploaded through add_attachment_to_case), so keep the first of each ID.
+			const data = response.data;
+			if (Array.isArray(data)) {
+				return dedupeById(data);
+			}
+			if (Array.isArray(data?.attachments)) {
+				const attachments = dedupeById(data.attachments);
+				const removed = data.attachments.length - attachments.length;
+				return {
+					...data,
+					attachments,
+					...(typeof data.size === "number"
+						? { size: data.size - removed }
+						: {}),
+				};
+			}
+			return data;
 		} catch (error) {
 			throw handleApiError(
 				error,
@@ -417,4 +434,14 @@ export class CasesClient extends BaseTestRailClient {
 			);
 		}
 	}
+}
+
+function dedupeById<T extends { id?: unknown }>(items: T[]): T[] {
+	const seen = new Set<unknown>();
+	return items.filter((item) => {
+		if (item?.id === undefined) return true;
+		if (seen.has(item.id)) return false;
+		seen.add(item.id);
+		return true;
+	});
 }

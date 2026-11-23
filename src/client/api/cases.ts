@@ -20,6 +20,8 @@ import {
 	CopyTestCasesToSectionInput,
 	MoveTestCasesToSectionInput,
 	GetTestCaseHistoryInput,
+	AddAttachmentToCaseInput,
+	GetAttachmentsForCaseInput,
 } from "../../shared/schemas/cases.js";
 
 interface GetCasesParams {
@@ -348,6 +350,70 @@ export class CasesClient extends BaseTestRailClient {
 			throw handleApiError(
 				error,
 				`Failed to export BDD scenario for case ${caseId}`,
+			);
+		}
+	}
+
+	/**
+	 * Adds a file attachment to a test case (TestRail 6.5.2+)
+	 * @param caseId The ID of the test case
+	 * @param filePath Absolute path to the file on disk to upload
+	 * @param filename Optional filename to use for the attachment (defaults to the base name of filePath)
+	 * @returns Response containing the new attachment ID (integer on TestRail < 7.1, reference string on 7.1+)
+	 */
+	async addAttachmentToCase(
+		caseId: AddAttachmentToCaseInput["caseId"],
+		filePath: AddAttachmentToCaseInput["filePath"],
+		filename?: AddAttachmentToCaseInput["filename"],
+	): Promise<{ attachment_id: number | string }> {
+		try {
+			const fs = await import("node:fs");
+			const path = await import("node:path");
+			const { default: FormData } = await import("form-data");
+
+			// A read stream only reports a missing file once it is consumed, so check up front
+			await fs.promises.access(filePath, fs.constants.R_OK);
+
+			const form = new FormData();
+			form.append(
+				"attachment",
+				fs.createReadStream(filePath),
+				filename ?? path.basename(filePath),
+			);
+
+			const response: AxiosResponse<{ attachment_id: number | string }> =
+				await this.client.post(
+					`/api/v2/add_attachment_to_case/${caseId}`,
+					form,
+					{ headers: form.getHeaders() },
+				);
+			return response.data;
+		} catch (error) {
+			throw handleApiError(error, `Failed to add attachment to case ${caseId}`);
+		}
+	}
+
+	/**
+	 * Returns the attachments of a test case (TestRail 5.7+).
+	 * TestRail 6.7+ wraps the list in a paginated object ({ offset, limit, size, _links, attachments });
+	 * older versions return a bare array. The response is passed through as-is.
+	 * @param caseId The ID of the test case
+	 * @param params Optional pagination parameters (limit, offset)
+	 */
+	async getAttachmentsForCase(
+		caseId: GetAttachmentsForCaseInput["caseId"],
+		params?: Pick<GetAttachmentsForCaseInput, "limit" | "offset">,
+	) {
+		try {
+			const response = await this.client.get(
+				`/api/v2/get_attachments_for_case/${caseId}`,
+				{ params },
+			);
+			return response.data;
+		} catch (error) {
+			throw handleApiError(
+				error,
+				`Failed to get attachments for case ${caseId}`,
 			);
 		}
 	}
